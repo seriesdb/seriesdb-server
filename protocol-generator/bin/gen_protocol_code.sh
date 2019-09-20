@@ -5,7 +5,7 @@ cd ${current_dir}
 
 # Fetch proto files
 if [[ ! -d proto ]]; then
-    git clone git@bitbros.com:/seriesdb-protocol proto;
+    git clone https://github.com/seriesdb/seriesdb-protocol.git proto;
 fi
 
 output_dir="../src/protocol"

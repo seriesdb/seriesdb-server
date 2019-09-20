@@ -12,7 +12,7 @@ actix = "0.8.3"
 actix-web = "1.0.7"
 actix-web-actors = "1.0.2"
 prost = "0.5"
-seriesdb = {git = "ssh://git@bitbros.com/seriesdb.git", branch = "master"}
+seriesdb = {git = "https://github.com/seriesdb/seriesdb.git", branch = "master"}
 bytes = "0.4"
 byteorder = "1.3"
 lazy_static = "1.4.0"
