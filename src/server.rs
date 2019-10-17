@@ -1,16 +1,22 @@
+use crate::db_owner::DbOwner;
 use crate::handler::Handler;
 use crate::settings::SETTINGS;
+use actix::Addr;
 use actix_web::{middleware, web, App, Error, HttpRequest, HttpResponse, HttpServer};
 use actix_web_actors::ws;
 
-pub fn index(req: HttpRequest, stream: web::Payload) -> Result<HttpResponse, Error> {
-    ws::start(Handler::new(), &req, stream)
+pub fn index(
+    req: HttpRequest,
+    stream: web::Payload,
+    state: web::Data<Addr<DbOwner>>,
+) -> Result<HttpResponse, Error> {
+    ws::start(Handler::new(state.get_ref().clone()), &req, stream)
 }
 
-pub fn run() {
-    let sys = actix::System::new("seriesdb_server");
-    HttpServer::new(|| {
+pub fn run(db_owner_addr: Addr<DbOwner>) {
+    HttpServer::new(move || {
         App::new()
+            .data(db_owner_addr.clone())
             .wrap(middleware::Logger::default())
             .route("/", web::get().to(index))
     })
@@ -18,5 +24,4 @@ pub fn run() {
     .unwrap()
     .start();
     log::info!("Started server successfully!");
-    let _ = sys.run();
 }

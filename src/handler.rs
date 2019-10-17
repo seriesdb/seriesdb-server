@@ -1,10 +1,13 @@
-use crate::db::Db;
+use crate::db_owner::DbOwner;
+use crate::db_ref::DbRef;
 use crate::protocol::{self, *};
-use actix::prelude::*;
+use actix::{prelude::*, Addr};
 use actix_web_actors::ws;
 use bytes::Bytes;
 
-pub struct Handler {}
+pub struct Handler {
+    pub db_ref: DbRef<'static>,
+}
 
 impl Actor for Handler {
     type Context = ws::WebsocketContext<Self>;
@@ -34,11 +37,13 @@ impl StreamHandler<ws::Message, ws::ProtocolError> for Handler {
 }
 
 impl Handler {
-    pub fn new() -> Self {
-        Self {}
+    pub fn new(db_owner_addr: Addr<DbOwner>) -> Self {
+        Self {
+            db_ref: DbRef::new(db_owner_addr),
+        }
     }
 
-    fn handle_boxed_msg(&self, boxed_msg: BoxedMsg, ctx: &mut <Self as Actor>::Context) {
+    fn handle_boxed_msg(&mut self, boxed_msg: BoxedMsg, ctx: &mut <Self as Actor>::Context) {
         match boxed_msg {
             BoxedMsg::PingReq(msg) => {
                 ctx.binary(protocol::encode_into(msg));
@@ -111,16 +116,18 @@ impl Handler {
     }
 
     #[inline]
-    fn set_rows(&self, msg: &SetRowsReq) -> SetRowsRep {
-        Db::new_table(&msg.table).set_rows(&msg.keys, &msg.values);
+    fn set_rows(&mut self, msg: &SetRowsReq) -> SetRowsRep {
+        self.db_ref
+            .new_table(&msg.table)
+            .set_rows(&msg.keys, &msg.values);
         SetRowsRep {
             round_ref: msg.round_ref,
         }
     }
 
     #[inline]
-    fn delete_rows_since(&self, msg: &DeleteRowsSinceReq) -> DeleteRowsSinceRep {
-        let table = Db::new_table(&msg.table);
+    fn delete_rows_since(&mut self, msg: &DeleteRowsSinceReq) -> DeleteRowsSinceRep {
+        let table = self.db_ref.new_table(&msg.table);
         table.delete_rows_since(&msg.key, msg.limit);
         DeleteRowsSinceRep {
             round_ref: msg.round_ref,
@@ -128,8 +135,8 @@ impl Handler {
     }
 
     #[inline]
-    fn get_first_row(&self, msg: &GetFirstRowReq) -> GetFirstRowRep {
-        match Db::new_table(&msg.table).get_first_row() {
+    fn get_first_row(&mut self, msg: &GetFirstRowReq) -> GetFirstRowRep {
+        match self.db_ref.new_table(&msg.table).get_first_row() {
             Some((key, value)) => GetFirstRowRep {
                 key,
                 value,
@@ -144,8 +151,8 @@ impl Handler {
     }
 
     #[inline]
-    fn get_last_row(&self, msg: &GetLastRowReq) -> GetLastRowRep {
-        match Db::new_table(&msg.table).get_last_row() {
+    fn get_last_row(&mut self, msg: &GetLastRowReq) -> GetLastRowRep {
+        match self.db_ref.new_table(&msg.table).get_last_row() {
             Some((key, value)) => GetLastRowRep {
                 key,
                 value,
@@ -160,8 +167,8 @@ impl Handler {
     }
 
     #[inline]
-    fn get_boundary_rows(&self, msg: &GetBoundaryRowsReq) -> GetBoundaryRowsRep {
-        let table = Db::new_table(&msg.table);
+    fn get_boundary_rows(&mut self, msg: &GetBoundaryRowsReq) -> GetBoundaryRowsRep {
+        let table = self.db_ref.new_table(&msg.table);
         match table.get_boundary_rows() {
             Some((first_key, first_value, last_key, last_value)) => GetBoundaryRowsRep {
                 first_key,
@@ -181,8 +188,8 @@ impl Handler {
     }
 
     #[inline]
-    fn get_rows_since(&self, msg: &GetRowsSinceReq) -> GetRowsSinceRep {
-        let table = Db::new_table(&msg.table);
+    fn get_rows_since(&mut self, msg: &GetRowsSinceReq) -> GetRowsSinceRep {
+        let table = self.db_ref.new_table(&msg.table);
         let (keys, values) = table.get_rows_since(&msg.key, msg.limit);
         GetRowsSinceRep {
             keys,
@@ -192,8 +199,8 @@ impl Handler {
     }
 
     #[inline]
-    fn get_rows_until(&self, msg: &GetRowsUntilReq) -> GetRowsUntilRep {
-        let table = Db::new_table(&msg.table);
+    fn get_rows_until(&mut self, msg: &GetRowsUntilReq) -> GetRowsUntilRep {
+        let table = self.db_ref.new_table(&msg.table);
         let (keys, values) = table.get_rows_until(&msg.key, msg.limit);
         GetRowsUntilRep {
             keys,
@@ -203,8 +210,8 @@ impl Handler {
     }
 
     #[inline]
-    fn get_rows_until_last(&self, msg: &GetRowsUntilLastReq) -> GetRowsUntilLastRep {
-        let table = Db::new_table(&msg.table);
+    fn get_rows_until_last(&mut self, msg: &GetRowsUntilLastReq) -> GetRowsUntilLastRep {
+        let table = self.db_ref.new_table(&msg.table);
         let (keys, values) = table.get_rows_until_last(msg.limit);
         GetRowsUntilLastRep {
             keys,
@@ -214,8 +221,8 @@ impl Handler {
     }
 
     #[inline]
-    fn get_rows_between(&self, msg: &GetRowsBetweenReq) -> GetRowsBetweenRep {
-        let table = Db::new_table(&msg.table);
+    fn get_rows_between(&mut self, msg: &GetRowsBetweenReq) -> GetRowsBetweenRep {
+        let table = self.db_ref.new_table(&msg.table);
         let (keys, values) = table.get_rows_between(&msg.begin_key, &msg.end_key, msg.limit);
         GetRowsBetweenRep {
             keys,
@@ -225,8 +232,8 @@ impl Handler {
     }
 
     #[inline]
-    fn get_first_key(&self, msg: &GetFirstKeyReq) -> GetFirstKeyRep {
-        match Db::new_table(&msg.table).get_first_key() {
+    fn get_first_key(&mut self, msg: &GetFirstKeyReq) -> GetFirstKeyRep {
+        match self.db_ref.new_table(&msg.table).get_first_key() {
             Some(key) => GetFirstKeyRep {
                 key,
                 round_ref: msg.round_ref,
@@ -239,8 +246,8 @@ impl Handler {
     }
 
     #[inline]
-    fn get_last_key(&self, msg: &GetLastKeyReq) -> GetLastKeyRep {
-        match Db::new_table(&msg.table).get_last_key() {
+    fn get_last_key(&mut self, msg: &GetLastKeyReq) -> GetLastKeyRep {
+        match self.db_ref.new_table(&msg.table).get_last_key() {
             Some(key) => GetLastKeyRep {
                 key,
                 round_ref: msg.round_ref,
@@ -253,8 +260,8 @@ impl Handler {
     }
 
     #[inline]
-    fn get_boundary_keys(&self, msg: &GetBoundaryKeysReq) -> GetBoundaryKeysRep {
-        let table = Db::new_table(&msg.table);
+    fn get_boundary_keys(&mut self, msg: &GetBoundaryKeysReq) -> GetBoundaryKeysRep {
+        let table = self.db_ref.new_table(&msg.table);
         match table.get_boundary_keys() {
             Some((first_key, last_key)) => GetBoundaryKeysRep {
                 first_key,
@@ -270,8 +277,8 @@ impl Handler {
     }
 
     #[inline]
-    fn get_value(&self, msg: &GetValueReq) -> GetValueRep {
-        match Db::new_table(&msg.table).get_value(&msg.key) {
+    fn get_value(&mut self, msg: &GetValueReq) -> GetValueRep {
+        match self.db_ref.new_table(&msg.table).get_value(&msg.key) {
             Some(value) => GetValueRep {
                 value,
                 round_ref: msg.round_ref,
@@ -284,8 +291,8 @@ impl Handler {
     }
 
     #[inline]
-    fn get_nth_last_value(&self, msg: &GetNthLastValueReq) -> GetNthLastValueRep {
-        match Db::new_table(&msg.table).get_nth_last_value(msg.n) {
+    fn get_nth_last_value(&mut self, msg: &GetNthLastValueReq) -> GetNthLastValueRep {
+        match self.db_ref.new_table(&msg.table).get_nth_last_value(msg.n) {
             Some(value) => GetNthLastValueRep {
                 value,
                 round_ref: msg.round_ref,
@@ -298,8 +305,8 @@ impl Handler {
     }
 
     #[inline]
-    fn get_values_since(&self, msg: &GetValuesSinceReq) -> GetValuesSinceRep {
-        let table = Db::new_table(&msg.table);
+    fn get_values_since(&mut self, msg: &GetValuesSinceReq) -> GetValuesSinceRep {
+        let table = self.db_ref.new_table(&msg.table);
         let values = table.get_values_since(&msg.key, msg.limit);
         GetValuesSinceRep {
             values,
@@ -308,8 +315,8 @@ impl Handler {
     }
 
     #[inline]
-    fn get_values_until(&self, msg: &GetValuesUntilReq) -> GetValuesUntilRep {
-        let table = Db::new_table(&msg.table);
+    fn get_values_until(&mut self, msg: &GetValuesUntilReq) -> GetValuesUntilRep {
+        let table = self.db_ref.new_table(&msg.table);
         let values = table.get_values_until(&msg.key, msg.limit);
         GetValuesUntilRep {
             values,
@@ -318,8 +325,8 @@ impl Handler {
     }
 
     #[inline]
-    fn get_values_until_last(&self, msg: &GetValuesUntilLastReq) -> GetValuesUntilLastRep {
-        let table = Db::new_table(&msg.table);
+    fn get_values_until_last(&mut self, msg: &GetValuesUntilLastReq) -> GetValuesUntilLastRep {
+        let table = self.db_ref.new_table(&msg.table);
         let values = table.get_values_until_last(msg.limit);
         GetValuesUntilLastRep {
             values,
@@ -328,8 +335,8 @@ impl Handler {
     }
 
     #[inline]
-    fn get_values_between(&self, msg: &GetValuesBetweenReq) -> GetValuesBetweenRep {
-        let table = Db::new_table(&msg.table);
+    fn get_values_between(&mut self, msg: &GetValuesBetweenReq) -> GetValuesBetweenRep {
+        let table = self.db_ref.new_table(&msg.table);
         let values = table.get_values_between(&msg.begin_key, &msg.end_key, msg.limit);
         GetValuesBetweenRep {
             values,
@@ -339,7 +346,7 @@ impl Handler {
 
     #[inline]
     fn destroy_table(&self, msg: &DestroyTableReq) -> DestroyTableRep {
-        Db::destroy_table(&msg.table);
+        self.db_ref.destroy_table(&msg.table);
         DestroyTableRep {
             round_ref: msg.round_ref,
         }
@@ -347,7 +354,7 @@ impl Handler {
 
     #[inline]
     fn rename_table(&self, msg: &RenameTableReq) -> RenameTableRep {
-        Db::rename_table(&msg.old_table, &msg.new_table);
+        self.db_ref.rename_table(&msg.old_table, &msg.new_table);
         RenameTableRep {
             round_ref: msg.round_ref,
         }
@@ -355,7 +362,7 @@ impl Handler {
 
     #[inline]
     fn get_tables(&self, msg: &GetTablesReq) -> GetTablesRep {
-        let (names, ids) = Db::get_tables();
+        let (names, ids) = self.db_ref.get_tables();
         GetTablesRep {
             names,
             ids,
