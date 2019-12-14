@@ -1,7 +1,7 @@
-use crate::db_ops::*;
+use crate::db::db_ops::*;
+use crate::db::table::Table;
 use crate::settings::SETTINGS;
-use crate::table::Table;
-use actix::{prelude::*, Actor, Addr, Arbiter, Context};
+use actix::{prelude::*, Actor, Addr, Context};
 use seriesdb::{db::Db as InnerDb, options::Options};
 
 lazy_static! {
@@ -24,7 +24,11 @@ impl Actor for DbOwner {
     type Context = Context<Self>;
 
     fn started(&mut self, _ctx: &mut Self::Context) {
-        log::info!("Started db_owner successfully!");
+        log::info!("DbOwner actor started.");
+    }
+
+    fn stopped(&mut self, _: &mut Context<Self>) {
+        log::info!("DbOwner actor stopped.");
     }
 }
 
@@ -32,7 +36,6 @@ impl Handler<NewTableReq> for DbOwner {
     type Result = NewTableRep;
 
     fn handle(&mut self, msg: NewTableReq, _ctx: &mut Context<Self>) -> Self::Result {
-        log::debug!("Received msg: {:?}", msg);
         Ok(Table::new(INNER_DB.new_table(&msg.name).unwrap()))
     }
 }
@@ -41,7 +44,6 @@ impl Handler<DestroyTableReq> for DbOwner {
     type Result = DestroyTableRep;
 
     fn handle(&mut self, msg: DestroyTableReq, _ctx: &mut Context<Self>) -> Self::Result {
-        log::debug!("Received msg: {:?}", msg);
         INNER_DB.destroy_table(&msg.name).unwrap();
         Ok(())
     }
@@ -51,7 +53,6 @@ impl Handler<RenameTableReq> for DbOwner {
     type Result = RenameTableRep;
 
     fn handle(&mut self, msg: RenameTableReq, _ctx: &mut Context<Self>) -> Self::Result {
-        log::debug!("Received msg: {:?}", msg);
         INNER_DB.rename_table(&msg.old_name, &msg.new_name).unwrap();
         Ok(())
     }
@@ -60,8 +61,7 @@ impl Handler<RenameTableReq> for DbOwner {
 impl Handler<GetTablesReq> for DbOwner {
     type Result = GetTablesRep;
 
-    fn handle(&mut self, msg: GetTablesReq, _ctx: &mut Context<Self>) -> Self::Result {
-        log::debug!("Received msg: {:?}", msg);
+    fn handle(&mut self, _msg: GetTablesReq, _ctx: &mut Context<Self>) -> Self::Result {
         let mut names = Vec::new();
         let mut ids = Vec::new();
         let tables = INNER_DB.get_tables();
@@ -73,12 +73,16 @@ impl Handler<GetTablesReq> for DbOwner {
     }
 }
 
-impl DbOwner {
-    pub fn new() -> DbOwner {
-        DbOwner
-    }
+impl Handler<GetInnerDbReq> for DbOwner {
+    type Result = GetInnerDbRep;
 
-    pub fn run(&self) -> Addr<Self> {
+    fn handle(&mut self, _msg: GetInnerDbReq, _ctx: &mut Context<Self>) -> Self::Result {
+        Ok(&INNER_DB)
+    }
+}
+
+impl DbOwner {
+    pub fn start() -> Addr<Self> {
         let arbiter = Arbiter::new();
         DbOwner::start_in_arbiter(&arbiter, |_ctx| DbOwner)
     }

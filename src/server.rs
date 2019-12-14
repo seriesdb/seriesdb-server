@@ -13,7 +13,7 @@ pub fn index(
     ws::start(Handler::new(state.get_ref().clone()), &req, stream)
 }
 
-pub fn run(db_owner_addr: Addr<DbOwner>) {
+pub fn start(db_owner_addr: Addr<DbOwner>) {
     HttpServer::new(move || {
         App::new()
             .data(db_owner_addr.clone())

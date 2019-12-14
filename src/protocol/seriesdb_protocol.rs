@@ -363,6 +363,22 @@ pub struct GetTablesRep {
     pub round_ref: u32,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetUpdatesSinceReq {
+    #[prost(uint64, tag="1")]
+    pub sn: u64,
+    #[prost(uint32, tag="2")]
+    pub limit: u32,
+    #[prost(uint32, tag="15")]
+    pub round_ref: u32,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetUpdatesSinceRep {
+    #[prost(message, repeated, tag="1")]
+    pub update_batches: ::std::vec::Vec<UpdateBatch>,
+    #[prost(uint32, tag="15")]
+    pub round_ref: u32,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct OkRep {
     #[prost(uint32, tag="15")]
     pub round_ref: u32,
@@ -375,6 +391,50 @@ pub struct ErrorRep {
     pub desc: std::string::String,
     #[prost(uint32, tag="15")]
     pub round_ref: u32,
+}
+// data type defs 
+
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UpdateBatch {
+    #[prost(uint64, tag="1")]
+    pub sn: u64,
+    #[prost(message, repeated, tag="2")]
+    pub updates: ::std::vec::Vec<UpdateWrapper>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct UpdateWrapper {
+    #[prost(oneof="update_wrapper::Update", tags="1, 2, 3")]
+    pub update: ::std::option::Option<update_wrapper::Update>,
+}
+pub mod update_wrapper {
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct Put {
+        #[prost(bytes, tag="1")]
+        pub key: std::vec::Vec<u8>,
+        #[prost(bytes, tag="2")]
+        pub value: std::vec::Vec<u8>,
+    }
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct Delete {
+        #[prost(bytes, tag="1")]
+        pub key: std::vec::Vec<u8>,
+    }
+    #[derive(Clone, PartialEq, ::prost::Message)]
+    pub struct DeleteRange {
+        #[prost(bytes, tag="1")]
+        pub from_key: std::vec::Vec<u8>,
+        #[prost(bytes, tag="2")]
+        pub to_key: std::vec::Vec<u8>,
+    }
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Update {
+        #[prost(message, tag="1")]
+        Put(Put),
+        #[prost(message, tag="2")]
+        Delete(Delete),
+        #[prost(message, tag="3")]
+        DeleteRange(DeleteRange),
+    }
 }
 // msg type enum 
 
@@ -468,6 +528,8 @@ pub enum MsgType {
     RenameTableRep = 82,
     GetTablesReq = 83,
     GetTablesRep = 84,
+    GetUpdatesSinceReq = 90,
+    GetUpdatesSinceRep = 91,
     OkRep = 99,
     ErrorRep = 100,
 }

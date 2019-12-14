@@ -1,9 +1,11 @@
-use crate::db_owner::DbOwner;
-use crate::db_ref::DbRef;
+use crate::db::db_owner::DbOwner;
+use crate::db::db_ref::DbRef;
 use crate::protocol::{self, *};
 use actix::{prelude::*, Addr};
 use actix_web_actors::ws;
 use bytes::Bytes;
+use seriesdb::update::Update as SeriesdbUpdate;
+use seriesdb::update_batch::UpdateBatch as SeriesdbUpdateBatch;
 
 pub struct Handler {
     pub db_ref: DbRef<'static>,
@@ -110,6 +112,9 @@ impl Handler {
             }
             BoxedMsg::GetTablesReq(msg) => {
                 ctx.binary(protocol::encode_into(self.get_tables(&msg)));
+            }
+            BoxedMsg::GetUpdatesSinceReq(msg) => {
+                ctx.binary(protocol::encode_into(self.get_updates_since(&msg)));
             }
             _ => log::error!("Received unknown msg: {:?}", boxed_msg),
         }
@@ -367,6 +372,51 @@ impl Handler {
             names,
             ids,
             round_ref: msg.round_ref,
+        }
+    }
+
+    #[inline]
+    fn get_updates_since(&self, msg: &GetUpdatesSinceReq) -> GetUpdatesSinceRep {
+        let iter = self.db_ref.get_updates_since(msg.sn);
+        let mut update_batches = Vec::new();
+        for sub in iter {
+            update_batches.push(Handler::seriesdb_update_batch_to_update_batch(&sub))
+        }
+        GetUpdatesSinceRep {
+            update_batches,
+            round_ref: msg.round_ref,
+        }
+    }
+
+    fn seriesdb_update_batch_to_update_batch(sub: &SeriesdbUpdateBatch) -> UpdateBatch {
+        let mut updates = Vec::new();
+        for su in &sub.updates {
+            updates.push(UpdateWrapper {
+                update: Some(Handler::seriesdb_update_to_update(&su)),
+            });
+        }
+        UpdateBatch {
+            sn: sub.sn,
+            updates,
+        }
+    }
+    fn seriesdb_update_to_update(su: &SeriesdbUpdate) -> update_wrapper::Update {
+        match su {
+            SeriesdbUpdate::Put { key, value } => {
+                update_wrapper::Update::Put(update_wrapper::Put {
+                    key: key.to_vec(),
+                    value: value.to_vec(),
+                })
+            }
+            SeriesdbUpdate::Delete { key } => {
+                update_wrapper::Update::Delete(update_wrapper::Delete { key: key.to_vec() })
+            }
+            SeriesdbUpdate::DeleteRange { from_key, to_key } => {
+                update_wrapper::Update::DeleteRange(update_wrapper::DeleteRange {
+                    from_key: from_key.to_vec(),
+                    to_key: to_key.to_vec(),
+                })
+            }
         }
     }
 }

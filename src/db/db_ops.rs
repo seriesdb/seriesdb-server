@@ -1,5 +1,6 @@
-use crate::table::Table;
+use crate::db::table::Table;
 use actix::prelude::*;
+use seriesdb::db::Db;
 
 pub(in crate) type Errcode = i8;
 
@@ -33,3 +34,9 @@ pub(in crate) type RenameTableRep = Result<(), Errcode>;
 #[derive(Debug)]
 pub(in crate) struct GetTablesReq;
 pub(in crate) type GetTablesRep = Result<(Vec<String>, Vec<u32>), Errcode>;
+
+#[derive(Message)]
+#[rtype(GetInnerDbRep)]
+#[derive(Debug)]
+pub(in crate) struct GetInnerDbReq;
+pub(in crate) type GetInnerDbRep = Result<&'static Db, Errcode>;

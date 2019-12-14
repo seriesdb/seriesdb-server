@@ -8,13 +8,22 @@ edition = "2018"
 config = "0.9"
 log = "0.4"
 log4rs = "0.8"
-actix = "0.8.3"
-actix-web = "1.0.8"
-actix-web-actors = "1.0.2"
-prost = "0.5"
-seriesdb = {git = "https://github.com/seriesdb/seriesdb.git", branch = "master"}
+
 bytes = "0.4"
 byteorder = "1.3"
 lazy_static = "1.4.0"
-serde_derive = "1.0.101"
-serde = "1.0.101"
+
+futures = "0.1"
+tokio = "0.1.22"
+
+actix = "0.8.3"
+actix-web = "1.0.8"
+actix-web-actors = "1.0.2"
+actix-codec = "0.1.2"
+awc = "0.2.8"
+
+prost = "0.5"
+serde_derive = "1.0.102"
+serde = "1.0.102"
+
+seriesdb = {git = "https://github.com/seriesdb/seriesdb.git", branch = "master"}

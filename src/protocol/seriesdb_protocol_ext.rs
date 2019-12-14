@@ -49,6 +49,8 @@ pub enum BoxedMsg {
     RenameTableRep(RenameTableRep),
     GetTablesReq(GetTablesReq),
     GetTablesRep(GetTablesRep),
+    GetUpdatesSinceReq(GetUpdatesSinceReq),
+    GetUpdatesSinceRep(GetUpdatesSinceRep),
     OkRep(OkRep),
     ErrorRep(ErrorRep),
 }
@@ -187,6 +189,12 @@ impl Debug for BoxedMsg {
             }
             BoxedMsg::GetTablesRep(msg) => {
                 write!(f, "GetTablesRep: {{{:?}}}", msg)
+            }
+            BoxedMsg::GetUpdatesSinceReq(msg) => {
+                write!(f, "GetUpdatesSinceReq: {{{:?}}}", msg)
+            }
+            BoxedMsg::GetUpdatesSinceRep(msg) => {
+                write!(f, "GetUpdatesSinceRep: {{{:?}}}", msg)
             }
             BoxedMsg::OkRep(msg) => {
                 write!(f, "OkRep: {{{:?}}}", msg)
@@ -476,6 +484,18 @@ impl EncodeInto for GetTablesRep {
     }
 }
 
+impl EncodeInto for GetUpdatesSinceReq {
+    fn encode_type(bytes: &mut BytesMut) {
+        bytes.put_u8(90);
+    }
+}
+
+impl EncodeInto for GetUpdatesSinceRep {
+    fn encode_type(bytes: &mut BytesMut) {
+        bytes.put_u8(91);
+    }
+}
+
 impl EncodeInto for OkRep {
     fn encode_type(bytes: &mut BytesMut) {
         bytes.put_u8(99);
@@ -757,6 +777,18 @@ pub fn decode_from(bytes: &Bytes) -> Result<BoxedMsg, DecodeError> {
         let res: Result<GetTablesRep, DecodeError> = Message::decode(msg_bytes);
         match res {
             Ok(msg) => Ok(BoxedMsg::GetTablesRep(msg)),
+            Err(err) => Err(err)
+        }
+    } else if msg_type == 90 {
+        let res: Result<GetUpdatesSinceReq, DecodeError> = Message::decode(msg_bytes);
+        match res {
+            Ok(msg) => Ok(BoxedMsg::GetUpdatesSinceReq(msg)),
+            Err(err) => Err(err)
+        }
+    } else if msg_type == 91 {
+        let res: Result<GetUpdatesSinceRep, DecodeError> = Message::decode(msg_bytes);
+        match res {
+            Ok(msg) => Ok(BoxedMsg::GetUpdatesSinceRep(msg)),
             Err(err) => Err(err)
         }
     } else if msg_type == 99 {

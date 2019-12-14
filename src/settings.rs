@@ -9,6 +9,8 @@ pub struct Settings {
     pub min_write_buffer_number_to_merge: i32,
     pub max_background_compactions: i32,
     pub max_background_flushes: i32,
+    pub replication_enabled: bool,
+    pub master_endpoint: String,
 }
 
 impl Settings {
