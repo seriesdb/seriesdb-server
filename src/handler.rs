@@ -104,8 +104,11 @@ impl Handler {
             BoxedMsg::GetValuesBetweenReq(msg) => {
                 ctx.binary(protocol::encode_into(self.get_values_between(&msg)));
             }
-            BoxedMsg::DestroyTableReq(msg) => {
-                ctx.binary(protocol::encode_into(self.destroy_table(&msg)));
+            // BoxedMsg::DestroyTableReq(msg) => {
+            //     ctx.binary(protocol::encode_into(self.destroy_table(&msg)));
+            // }
+            BoxedMsg::TruncateTableReq(msg) => {
+                ctx.binary(protocol::encode_into(self.truncate_table(&msg)));
             }
             BoxedMsg::RenameTableReq(msg) => {
                 ctx.binary(protocol::encode_into(self.rename_table(&msg)));
@@ -349,10 +352,18 @@ impl Handler {
         }
     }
 
+    // #[inline]
+    // fn destroy_table(&self, msg: &DestroyTableReq) -> DestroyTableRep {
+    //     self.db_ref.destroy_table(&msg.table);
+    //     DestroyTableRep {
+    //         round_ref: msg.round_ref,
+    //     }
+    // }
+
     #[inline]
-    fn destroy_table(&self, msg: &DestroyTableReq) -> DestroyTableRep {
-        self.db_ref.destroy_table(&msg.table);
-        DestroyTableRep {
+    fn truncate_table(&self, msg: &TruncateTableReq) -> TruncateTableRep {
+        self.db_ref.truncate_table(&msg.table);
+        TruncateTableRep {
             round_ref: msg.round_ref,
         }
     }

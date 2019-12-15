@@ -1,9 +1,9 @@
-server_port = 8889
+server_port = 8888
 data_dir = "/Users/xuchaoqian/codebase/bitbros/seriesdb-server/data/"
 write_buffer_size = 268435456
 max_write_buffer_number = 4
 min_write_buffer_number_to_merge = 2
 max_background_compactions = 4
 max_background_flushes = 4
-replication_enabled = true
-master_endpoint = "localhost:8888"
+replication_enabled = false
+master_endpoint = "localhost:8880"

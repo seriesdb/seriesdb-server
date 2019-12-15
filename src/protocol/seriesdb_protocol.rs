@@ -335,6 +335,18 @@ pub struct DestroyTableRep {
     pub round_ref: u32,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TruncateTableReq {
+    #[prost(string, tag="1")]
+    pub table: std::string::String,
+    #[prost(uint32, tag="15")]
+    pub round_ref: u32,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TruncateTableRep {
+    #[prost(uint32, tag="15")]
+    pub round_ref: u32,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RenameTableReq {
     #[prost(string, tag="1")]
     pub old_table: std::string::String,
@@ -524,10 +536,12 @@ pub enum MsgType {
 
     DestroyTableReq = 79,
     DestroyTableRep = 80,
-    RenameTableReq = 81,
-    RenameTableRep = 82,
-    GetTablesReq = 83,
-    GetTablesRep = 84,
+    TruncateTableReq = 81,
+    TruncateTableRep = 82,
+    RenameTableReq = 83,
+    RenameTableRep = 84,
+    GetTablesReq = 85,
+    GetTablesRep = 86,
     GetUpdatesSinceReq = 90,
     GetUpdatesSinceRep = 91,
     OkRep = 99,

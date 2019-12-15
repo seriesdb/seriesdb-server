@@ -40,11 +40,20 @@ impl Handler<NewTableReq> for DbOwner {
     }
 }
 
-impl Handler<DestroyTableReq> for DbOwner {
-    type Result = DestroyTableRep;
+// impl Handler<DestroyTableReq> for DbOwner {
+//     type Result = DestroyTableRep;
 
-    fn handle(&mut self, msg: DestroyTableReq, _ctx: &mut Context<Self>) -> Self::Result {
-        INNER_DB.destroy_table(&msg.name).unwrap();
+//     fn handle(&mut self, msg: DestroyTableReq, _ctx: &mut Context<Self>) -> Self::Result {
+//         INNER_DB.destroy_table(&msg.name).unwrap();
+//         Ok(())
+//     }
+// }
+
+impl Handler<TruncateTableReq> for DbOwner {
+    type Result = TruncateTableRep;
+
+    fn handle(&mut self, msg: TruncateTableReq, _ctx: &mut Context<Self>) -> Self::Result {
+        INNER_DB.truncate_table(&msg.name).unwrap();
         Ok(())
     }
 }

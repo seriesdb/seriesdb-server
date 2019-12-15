@@ -45,6 +45,8 @@ pub enum BoxedMsg {
     GetValuesBetweenRep(GetValuesBetweenRep),
     DestroyTableReq(DestroyTableReq),
     DestroyTableRep(DestroyTableRep),
+    TruncateTableReq(TruncateTableReq),
+    TruncateTableRep(TruncateTableRep),
     RenameTableReq(RenameTableReq),
     RenameTableRep(RenameTableRep),
     GetTablesReq(GetTablesReq),
@@ -177,6 +179,12 @@ impl Debug for BoxedMsg {
             }
             BoxedMsg::DestroyTableRep(msg) => {
                 write!(f, "DestroyTableRep: {{{:?}}}", msg)
+            }
+            BoxedMsg::TruncateTableReq(msg) => {
+                write!(f, "TruncateTableReq: {{{:?}}}", msg)
+            }
+            BoxedMsg::TruncateTableRep(msg) => {
+                write!(f, "TruncateTableRep: {{{:?}}}", msg)
             }
             BoxedMsg::RenameTableReq(msg) => {
                 write!(f, "RenameTableReq: {{{:?}}}", msg)
@@ -460,27 +468,39 @@ impl EncodeInto for DestroyTableRep {
     }
 }
 
-impl EncodeInto for RenameTableReq {
+impl EncodeInto for TruncateTableReq {
     fn encode_type(bytes: &mut BytesMut) {
         bytes.put_u8(81);
     }
 }
 
-impl EncodeInto for RenameTableRep {
+impl EncodeInto for TruncateTableRep {
     fn encode_type(bytes: &mut BytesMut) {
         bytes.put_u8(82);
     }
 }
 
-impl EncodeInto for GetTablesReq {
+impl EncodeInto for RenameTableReq {
     fn encode_type(bytes: &mut BytesMut) {
         bytes.put_u8(83);
     }
 }
 
-impl EncodeInto for GetTablesRep {
+impl EncodeInto for RenameTableRep {
     fn encode_type(bytes: &mut BytesMut) {
         bytes.put_u8(84);
+    }
+}
+
+impl EncodeInto for GetTablesReq {
+    fn encode_type(bytes: &mut BytesMut) {
+        bytes.put_u8(85);
+    }
+}
+
+impl EncodeInto for GetTablesRep {
+    fn encode_type(bytes: &mut BytesMut) {
+        bytes.put_u8(86);
     }
 }
 
@@ -756,24 +776,36 @@ pub fn decode_from(bytes: &Bytes) -> Result<BoxedMsg, DecodeError> {
             Err(err) => Err(err)
         }
     } else if msg_type == 81 {
+        let res: Result<TruncateTableReq, DecodeError> = Message::decode(msg_bytes);
+        match res {
+            Ok(msg) => Ok(BoxedMsg::TruncateTableReq(msg)),
+            Err(err) => Err(err)
+        }
+    } else if msg_type == 82 {
+        let res: Result<TruncateTableRep, DecodeError> = Message::decode(msg_bytes);
+        match res {
+            Ok(msg) => Ok(BoxedMsg::TruncateTableRep(msg)),
+            Err(err) => Err(err)
+        }
+    } else if msg_type == 83 {
         let res: Result<RenameTableReq, DecodeError> = Message::decode(msg_bytes);
         match res {
             Ok(msg) => Ok(BoxedMsg::RenameTableReq(msg)),
             Err(err) => Err(err)
         }
-    } else if msg_type == 82 {
+    } else if msg_type == 84 {
         let res: Result<RenameTableRep, DecodeError> = Message::decode(msg_bytes);
         match res {
             Ok(msg) => Ok(BoxedMsg::RenameTableRep(msg)),
             Err(err) => Err(err)
         }
-    } else if msg_type == 83 {
+    } else if msg_type == 85 {
         let res: Result<GetTablesReq, DecodeError> = Message::decode(msg_bytes);
         match res {
             Ok(msg) => Ok(BoxedMsg::GetTablesReq(msg)),
             Err(err) => Err(err)
         }
-    } else if msg_type == 84 {
+    } else if msg_type == 86 {
         let res: Result<GetTablesRep, DecodeError> = Message::decode(msg_bytes);
         match res {
             Ok(msg) => Ok(BoxedMsg::GetTablesRep(msg)),

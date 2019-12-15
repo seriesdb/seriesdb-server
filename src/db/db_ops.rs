@@ -12,13 +12,21 @@ pub(in crate) struct NewTableReq {
 }
 pub(in crate) type NewTableRep = Result<Table<'static>, Errcode>;
 
+// #[derive(Message)]
+// #[rtype(DestroyTableRep)]
+// #[derive(Debug)]
+// pub(in crate) struct DestroyTableReq {
+//     pub name: String,
+// }
+// pub(in crate) type DestroyTableRep = Result<(), Errcode>;
+
 #[derive(Message)]
-#[rtype(DestroyTableRep)]
+#[rtype(TruncateTableRep)]
 #[derive(Debug)]
-pub(in crate) struct DestroyTableReq {
+pub(in crate) struct TruncateTableReq {
     pub name: String,
 }
-pub(in crate) type DestroyTableRep = Result<(), Errcode>;
+pub(in crate) type TruncateTableRep = Result<(), Errcode>;
 
 #[derive(Message)]
 #[rtype(RenameTableRep)]

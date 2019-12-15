@@ -37,9 +37,17 @@ impl<'a> DbRef<'a> {
         }
     }
 
+    // #[inline]
+    // pub fn destroy_table(&self, name: &str) {
+    //     let req = DestroyTableReq {
+    //         name: name.to_owned(),
+    //     };
+    //     self.db_owner_addr.send(req).wait().unwrap().unwrap();
+    // }
+
     #[inline]
-    pub fn destroy_table(&self, name: &str) {
-        let req = DestroyTableReq {
+    pub fn truncate_table(&self, name: &str) {
+        let req = TruncateTableReq {
             name: name.to_owned(),
         };
         self.db_owner_addr.send(req).wait().unwrap().unwrap();
