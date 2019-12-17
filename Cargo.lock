@@ -1648,7 +1648,7 @@ dependencies = [
 [[package]]
 name = "seriesdb"
 version = "0.1.0"
-source = "git+https://github.com/seriesdb/seriesdb.git#48affe6ac39309f70a69d7a4378caf09a3f88f73"
+source = "git+https://github.com/seriesdb/seriesdb.git#92203ac011230b890706306041358c1277860dfb"
 dependencies = [
  "byteorder 1.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "bytes 0.4.12 (registry+https://github.com/rust-lang/crates.io-index)",

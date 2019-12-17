@@ -1,9 +1,17 @@
 server_port = 8888
 data_dir = "/Users/xuchaoqian/codebase/bitbros/seriesdb-server/data/"
+
+table_cache_num_shard_bits = 4
 write_buffer_size = 134217728
 max_write_buffer_number = 4
 min_write_buffer_number_to_merge = 2
+max_bytes_for_level_base = 1073741824
+max_bytes_for_level_multiplier = 8.0
+target_file_size_base = 134217728
+target_file_size_multiplier = 8
+level_zero_file_num_compaction_trigger = 4
 max_background_compactions = 4
 max_background_flushes = 4
+
 replication_enabled = false
 master_endpoint = "localhost:8880"

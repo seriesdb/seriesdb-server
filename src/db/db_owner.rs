@@ -10,9 +10,17 @@ lazy_static! {
 
 fn new_inner_db() -> InnerDb {
     let mut opts = Options::new();
+    opts.set_table_cache_num_shard_bits(SETTINGS.table_cache_num_shard_bits);
     opts.set_write_buffer_size(SETTINGS.write_buffer_size);
     opts.set_max_write_buffer_number(SETTINGS.max_write_buffer_number);
     opts.set_min_write_buffer_number_to_merge(SETTINGS.min_write_buffer_number_to_merge);
+    opts.set_max_bytes_for_level_base(SETTINGS.max_bytes_for_level_base);
+    opts.set_max_bytes_for_level_multiplier(SETTINGS.max_bytes_for_level_multiplier);
+    opts.set_target_file_size_base(SETTINGS.target_file_size_base);
+    opts.set_target_file_size_multiplier(SETTINGS.target_file_size_multiplier);
+    opts.set_level_zero_file_num_compaction_trigger(
+        SETTINGS.level_zero_file_num_compaction_trigger,
+    );
     opts.set_max_background_compactions(SETTINGS.max_background_compactions);
     opts.set_max_background_flushes(SETTINGS.max_background_flushes);
     InnerDb::new(&SETTINGS.data_dir, &opts).unwrap()

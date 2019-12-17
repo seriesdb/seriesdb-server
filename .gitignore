@@ -22,3 +22,4 @@ target
 releases
 protocol-generator/proto
 protocol-generator/target
+settings.prod.toml
